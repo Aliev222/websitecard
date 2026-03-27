@@ -211,14 +211,14 @@ function buildLeagueTable(title, leagueData) {
     const winner = winners.get(player.rank);
     return `
       <tr>
-        <td>#${player.rank}</td>
-        <td>${player.username || `User ${player.user_id}`}</td>
-        <td>${formatNumber(player.display_level)}</td>
-        <td>${formatNumber(player.score)}</td>
-        <td>${winner ? formatCurrencyCents(winner.payout_cents) : "-"}</td>
-        <td>${winner ? formatNumber(winner.stars_reward) : "-"}</td>
-        <td>${player.eligible_for_payout ? "Yes" : "No"}</td>
-        <td>${player.fraud_flag ? "Flagged" : "OK"}</td>
+        <td data-label="Rank">#${player.rank}</td>
+        <td data-label="Player">${player.username || `User ${player.user_id}`}</td>
+        <td data-label="Level">${formatNumber(player.display_level)}</td>
+        <td data-label="Weekly Click Score">${formatNumber(player.score)}</td>
+        <td data-label="Payout">${winner ? formatCurrencyCents(winner.payout_cents) : "-"}</td>
+        <td data-label="Stars">${winner ? formatNumber(winner.stars_reward) : "-"}</td>
+        <td data-label="Eligible">${player.eligible_for_payout ? "Yes" : "No"}</td>
+        <td data-label="Fraud">${player.fraud_flag ? "Flagged" : "OK"}</td>
       </tr>
     `;
   }).join("");

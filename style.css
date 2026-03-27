@@ -23,6 +23,7 @@ body {
     font-family: "Manrope", sans-serif;
     background: var(--bg-accent);
     color: var(--text);
+    -webkit-font-smoothing: antialiased;
 }
 
 button,
@@ -53,6 +54,11 @@ select {
     align-items: flex-end;
     gap: 16px;
     margin-bottom: 18px;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    padding: calc(env(safe-area-inset-top, 0px) + 8px) 0 8px;
+    background: linear-gradient(180deg, rgba(10, 16, 32, 0.96), rgba(10, 16, 32, 0.68), transparent);
 }
 
 .eyebrow {
@@ -370,6 +376,7 @@ select:focus {
     overflow: auto;
     border-radius: 16px;
     border: 1px solid rgba(255, 255, 255, 0.08);
+    -webkit-overflow-scrolling: touch;
 }
 
 table {
@@ -418,7 +425,8 @@ tbody tr:hover {
 @media (max-width: 720px) {
     .app-shell {
         width: min(100vw - 20px, 100%);
-        padding-top: 18px;
+        padding-top: 12px;
+        padding-bottom: calc(28px + env(safe-area-inset-bottom, 0px));
     }
 
     .overview-grid,
@@ -430,6 +438,7 @@ tbody tr:hover {
     .topbar {
         align-items: stretch;
         flex-direction: column;
+        margin-bottom: 14px;
     }
 
     .topbar-actions .btn,
@@ -441,5 +450,126 @@ tbody tr:hover {
     .inline-actions {
         width: 100%;
         flex-direction: column;
+    }
+
+    .panel {
+        padding: 16px;
+        border-radius: 20px;
+    }
+
+    .panel-title-row,
+    .league-card-head,
+    .season-item,
+    .season-league-head {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .panel-title-row {
+        gap: 8px;
+    }
+
+    .settings-actions,
+    .topbar-actions {
+        width: 100%;
+        flex-direction: column;
+    }
+
+    .stat-panel {
+        padding: 16px;
+    }
+
+    .stat-value {
+        font-size: 28px;
+    }
+
+    .season-item {
+        gap: 10px;
+    }
+
+    .league-card,
+    .season-league-block {
+        padding: 14px;
+    }
+
+    .season-table-wrap {
+        overflow: visible;
+        border: 0;
+    }
+
+    table,
+    thead,
+    tbody,
+    tr,
+    th,
+    td {
+        display: block;
+        width: 100%;
+        min-width: 0;
+    }
+
+    thead {
+        display: none;
+    }
+
+    tbody {
+        display: grid;
+        gap: 12px;
+    }
+
+    tbody tr {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 16px;
+        padding: 10px 12px;
+    }
+
+    td {
+        border-bottom: 0;
+        padding: 7px 0;
+        text-align: right;
+        font-size: 13px;
+    }
+
+    td::before {
+        content: attr(data-label);
+        float: left;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+    }
+
+    tbody tr:hover {
+        background: rgba(255, 255, 255, 0.03);
+    }
+}
+
+@media (max-width: 420px) {
+    .app-shell {
+        width: calc(100vw - 14px);
+    }
+
+    h1 {
+        font-size: 26px;
+    }
+
+    .eyebrow {
+        font-size: 10px;
+    }
+
+    .btn {
+        min-height: 42px;
+        padding: 0 14px;
+    }
+
+    input,
+    select {
+        min-height: 44px;
+    }
+
+    .meta-card strong {
+        font-size: 18px;
     }
 }
