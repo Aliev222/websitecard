@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spirit Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-shell">
+        <header class="topbar">
+            <div>
+                <p class="eyebrow">Spirit Clicker</p>
+                <h1>Admin Dashboard</h1>
+            </div>
+            <div class="topbar-actions">
+                <button id="refresh-all-btn" class="btn btn-primary">Refresh</button>
+            </div>
+        </header>
+
+        <section class="panel settings-panel">
+            <div class="panel-title-row">
+                <h2>Connection</h2>
+                <span id="connection-status" class="status-pill status-idle">Idle</span>
+            </div>
+            <div class="settings-grid">
+                <label class="field">
+                    <span>API Base URL</span>
+                    <input id="api-base-input" type="url" placeholder="https://ryoho.onrender.com">
+                </label>
+                <label class="field">
+                    <span>Admin Token</span>
+                    <input id="admin-token-input" type="password" placeholder="X-Admin-Token">
+                </label>
+                <div class="settings-actions">
+                    <button id="save-settings-btn" class="btn btn-secondary">Save Settings</button>
+                    <button id="test-connection-btn" class="btn btn-ghost">Test</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="overview-grid">
+            <article class="panel stat-panel">
+                <span class="stat-label">Online Now</span>
+                <strong id="online-now" class="stat-value">-</strong>
+            </article>
+            <article class="panel stat-panel">
+                <span class="stat-label">Total Players</span>
+                <strong id="total-users" class="stat-value">-</strong>
+            </article>
+            <article class="panel stat-panel">
+                <span class="stat-label">Current Season</span>
+                <strong id="current-season-key" class="stat-value">-</strong>
+            </article>
+            <article class="panel stat-panel">
+                <span class="stat-label">Reset In</span>
+                <strong id="season-time-left" class="stat-value">-</strong>
+            </article>
+        </section>
+
+        <section class="dashboard-grid">
+            <article class="panel">
+                <div class="panel-title-row">
+                    <h2>Weekly Fund</h2>
+                    <span class="panel-sub">Current season payout setup</span>
+                </div>
+                <form id="fund-form" class="stack-form">
+                    <label class="field">
+                        <span>Season Key</span>
+                        <input id="fund-season-key" type="text" placeholder="2026-03-23">
+                    </label>
+                    <label class="field">
+                        <span>Gross Ad Revenue, cents</span>
+                        <input id="gross-revenue-input" type="number" min="0" step="1" placeholder="100000">
+                    </label>
+                    <label class="field">
+                        <span>Payout Fund, cents</span>
+                        <input id="payout-fund-input" type="number" min="0" step="1" placeholder="40000">
+                    </label>
+                    <button type="submit" class="btn btn-primary">Save Fund</button>
+                </form>
+                <div class="split-grid">
+                    <div class="split-card">
+                        <span>Diamond</span>
+                        <strong>50%</strong>
+                    </div>
+                    <div class="split-card">
+                        <span>Gold</span>
+                        <strong>30%</strong>
+                    </div>
+                    <div class="split-card">
+                        <span>Silver</span>
+                        <strong>15%</strong>
+                    </div>
+                    <div class="split-card">
+                        <span>Bronze</span>
+                        <strong>5%</strong>
+                    </div>
+                </div>
+                <div class="split-grid payout-grid">
+                    <div class="split-card">
+                        <span>Top 1</span>
+                        <strong>30%</strong>
+                    </div>
+                    <div class="split-card">
+                        <span>Top 2</span>
+                        <strong>20%</strong>
+                    </div>
+                    <div class="split-card">
+                        <span>Top 3</span>
+                        <strong>15%</strong>
+                    </div>
+                    <div class="split-card">
+                        <span>Ranks 4-50</span>
+                        <strong>35%</strong>
+                    </div>
+                </div>
+            </article>
+
+            <article class="panel">
+                <div class="panel-title-row">
+                    <h2>Season History</h2>
+                    <span class="panel-sub">Latest weeks</span>
+                </div>
+                <div id="season-history" class="season-list"></div>
+            </article>
+        </section>
+
+        <section class="panel">
+            <div class="panel-title-row">
+                <h2>League Snapshot</h2>
+                <span class="panel-sub">Current week top 3 and player counts</span>
+            </div>
+            <div id="league-snapshot" class="league-snapshot-grid"></div>
+        </section>
+
+        <section class="panel">
+            <div class="panel-title-row">
+                <h2>Season Detail</h2>
+                <div class="inline-actions">
+                    <select id="season-select"></select>
+                    <button id="load-season-btn" class="btn btn-secondary">Load</button>
+                </div>
+            </div>
+            <div class="season-detail-grid">
+                <div id="season-meta" class="season-meta"></div>
+                <div id="season-leagues" class="season-leagues"></div>
+            </div>
+        </section>
+    </div>
+
+    <template id="league-card-template">
+        <article class="league-card">
+            <div class="league-card-head">
+                <div>
+                    <p class="league-name"></p>
+                    <span class="league-range"></span>
+                </div>
+                <span class="league-count"></span>
+            </div>
+            <div class="mini-top-list"></div>
+        </article>
+    </template>
+
+    <template id="season-item-template">
+        <button class="season-item" type="button">
+            <div>
+                <strong class="season-item-key"></strong>
+                <span class="season-item-status"></span>
+            </div>
+            <span class="season-item-fund"></span>
+        </button>
+    </template>
+
+    <script src="app.js"></script>
+</body>
+</html>

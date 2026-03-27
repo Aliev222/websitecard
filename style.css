@@ -1,0 +1,445 @@
+:root {
+    color-scheme: dark;
+    --bg: #0a1020;
+    --bg-accent: radial-gradient(circle at top left, rgba(73, 214, 255, 0.18), transparent 32%), radial-gradient(circle at top right, rgba(255, 189, 89, 0.14), transparent 28%), #0a1020;
+    --panel: rgba(13, 22, 43, 0.9);
+    --panel-strong: rgba(19, 30, 56, 0.96);
+    --border: rgba(153, 192, 255, 0.18);
+    --text: #f3f7ff;
+    --muted: #8da2c8;
+    --accent: #5eead4;
+    --accent-2: #7dd3fc;
+    --danger: #ff8f8f;
+    --shadow: 0 24px 70px rgba(0, 0, 0, 0.35);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: "Manrope", sans-serif;
+    background: var(--bg-accent);
+    color: var(--text);
+}
+
+button,
+input,
+select {
+    font: inherit;
+}
+
+.app-shell {
+    width: min(1440px, calc(100vw - 32px));
+    margin: 0 auto;
+    padding: 28px 0 40px;
+}
+
+.topbar,
+.panel,
+.league-card,
+.season-item,
+.split-card,
+.stat-panel {
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+}
+
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.eyebrow {
+    margin: 0 0 6px;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+h1,
+h2 {
+    margin: 0;
+}
+
+h1 {
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 800;
+}
+
+.panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    box-shadow: var(--shadow);
+    padding: 20px;
+}
+
+.settings-panel,
+.overview-grid,
+.dashboard-grid,
+.panel + .panel {
+    margin-top: 18px;
+}
+
+.overview-grid,
+.dashboard-grid,
+.season-detail-grid,
+.league-snapshot-grid,
+.split-grid {
+    display: grid;
+    gap: 16px;
+}
+
+.overview-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.dashboard-grid {
+    grid-template-columns: minmax(320px, 420px) minmax(0, 1fr);
+}
+
+.season-detail-grid {
+    grid-template-columns: 320px minmax(0, 1fr);
+    align-items: start;
+}
+
+.league-snapshot-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.split-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin-top: 16px;
+}
+
+.split-card,
+.stat-panel,
+.league-card,
+.season-item {
+    background: var(--panel-strong);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+}
+
+.split-card,
+.stat-panel {
+    padding: 14px 16px;
+}
+
+.panel-title-row,
+.league-card-head,
+.season-item,
+.settings-actions,
+.inline-actions {
+    display: flex;
+    align-items: center;
+}
+
+.panel-title-row,
+.league-card-head,
+.season-item {
+    justify-content: space-between;
+}
+
+.panel-sub,
+.league-range,
+.stat-label,
+.field span,
+.season-item-status,
+.mini-top-line span {
+    color: var(--muted);
+}
+
+.panel-title-row {
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.settings-grid,
+.stack-form {
+    display: grid;
+    gap: 14px;
+}
+
+.settings-grid {
+    grid-template-columns: 1.4fr 1fr auto;
+}
+
+.field {
+    display: grid;
+    gap: 8px;
+}
+
+.field span {
+    font-size: 13px;
+    font-weight: 700;
+}
+
+input,
+select {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    color: var(--text);
+    min-height: 46px;
+    padding: 0 14px;
+    outline: none;
+}
+
+input:focus,
+select:focus {
+    border-color: rgba(94, 234, 212, 0.6);
+    box-shadow: 0 0 0 3px rgba(94, 234, 212, 0.12);
+}
+
+.settings-actions,
+.inline-actions,
+.topbar-actions {
+    gap: 10px;
+}
+
+.btn {
+    border: 0;
+    border-radius: 14px;
+    min-height: 44px;
+    padding: 0 16px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: transform 0.16s ease, opacity 0.16s ease, box-shadow 0.16s ease;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: #06202b;
+    box-shadow: 0 10px 24px rgba(94, 234, 212, 0.24);
+}
+
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text);
+}
+
+.btn-ghost {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    min-height: 30px;
+    padding: 0 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.status-idle {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--muted);
+}
+
+.status-ok {
+    background: rgba(94, 234, 212, 0.12);
+    color: var(--accent);
+}
+
+.status-error {
+    background: rgba(255, 143, 143, 0.12);
+    color: var(--danger);
+}
+
+.stat-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.stat-value {
+    font-size: clamp(22px, 3vw, 34px);
+    font-weight: 800;
+}
+
+.season-list,
+.season-leagues,
+.mini-top-list {
+    display: grid;
+    gap: 12px;
+}
+
+.season-item {
+    width: 100%;
+    text-align: left;
+    padding: 14px 16px;
+    cursor: pointer;
+}
+
+.season-item.is-active {
+    border-color: rgba(94, 234, 212, 0.45);
+    box-shadow: inset 0 0 0 1px rgba(94, 234, 212, 0.28);
+}
+
+.season-item-key,
+.league-name {
+    display: block;
+    font-size: 16px;
+    font-weight: 800;
+    text-transform: capitalize;
+}
+
+.season-item-fund,
+.league-count {
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--accent-2);
+}
+
+.league-card {
+    padding: 16px;
+}
+
+.mini-top-list {
+    margin-top: 14px;
+}
+
+.mini-top-line {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 13px;
+}
+
+.mini-top-line strong {
+    font-weight: 800;
+}
+
+.season-meta {
+    display: grid;
+    gap: 12px;
+}
+
+.meta-card {
+    background: var(--panel-strong);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 14px 16px;
+}
+
+.meta-card span {
+    display: block;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 6px;
+}
+
+.meta-card strong {
+    font-size: 20px;
+}
+
+.season-league-block {
+    background: var(--panel-strong);
+    border: 1px solid var(--border);
+    border-radius: 22px;
+    padding: 18px;
+}
+
+.season-league-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.season-table-wrap {
+    overflow: auto;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 720px;
+}
+
+th,
+td {
+    padding: 12px 14px;
+    text-align: left;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    font-size: 13px;
+}
+
+th {
+    color: var(--muted);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+tbody tr:hover {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.empty-state {
+    color: var(--muted);
+    padding: 18px 0;
+}
+
+@media (max-width: 1120px) {
+    .overview-grid,
+    .league-snapshot-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .dashboard-grid,
+    .season-detail-grid,
+    .settings-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 720px) {
+    .app-shell {
+        width: min(100vw - 20px, 100%);
+        padding-top: 18px;
+    }
+
+    .overview-grid,
+    .league-snapshot-grid,
+    .split-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .topbar {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .topbar-actions .btn,
+    .settings-actions .btn,
+    .inline-actions .btn {
+        width: 100%;
+    }
+
+    .inline-actions {
+        width: 100%;
+        flex-direction: column;
+    }
+}
