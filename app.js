@@ -24,6 +24,9 @@ const el = {
   seasonTimeLeft: document.getElementById("season-time-left"),
   seasonHistory: document.getElementById("season-history"),
   leagueSnapshot: document.getElementById("league-snapshot"),
+  rewardedAdsSummary: document.getElementById("rewarded-ads-summary"),
+  starsSalesSummary: document.getElementById("stars-sales-summary"),
+  fraudOverview: document.getElementById("fraud-overview"),
   seasonSelect: document.getElementById("season-select"),
   loadSeasonBtn: document.getElementById("load-season-btn"),
   seasonMeta: document.getElementById("season-meta"),
@@ -71,12 +74,8 @@ function formatDuration(seconds) {
   const days = Math.floor(total / 86400);
   const hours = Math.floor((total % 86400) / 3600);
   const minutes = Math.floor((total % 3600) / 60);
-  if (days > 0) {
-    return `${days}d ${hours}h`;
-  }
-  if (hours > 0) {
-    return `${hours}h ${minutes}m`;
-  }
+  if (days > 0) return `${days}d ${hours}h`;
+  if (hours > 0) return `${hours}h ${minutes}m`;
   return `${minutes}m`;
 }
 
@@ -130,7 +129,9 @@ function renderSeasonHistory(seasons) {
       localStorage.setItem(STORAGE_KEYS.selectedSeason, state.selectedSeason);
       syncSeasonSelect();
       renderSeasonHistory(state.seasons);
-      loadSeasonDetail();
+      Promise.all([loadSeasonDetail(), loadFraudOverview()]).catch((error) => {
+        setStatus("error", error.message || "Load failed");
+      });
     });
     el.seasonHistory.appendChild(fragment);
   });
@@ -197,6 +198,163 @@ function renderSeasonMeta(detail) {
   `;
 }
 
+function renderRewardedAdsSummary(summary) {
+  const actions = summary.actions || {};
+  const labels = {
+    boost: "Boost",
+    autoclicker: "Autoclicker",
+    tasks: "Tasks",
+    ghost: "Ghost",
+    energy_restore: "Energy Restore",
+    skins: "Skin Ads",
+  };
+
+  const actionRows = Object.entries(labels).map(([key, label]) => `
+    <div class="analytics-row">
+      <span>${label}</span>
+      <strong>${formatNumber(actions[key]?.total || 0)} total - ${formatNumber(actions[key]?.recent || 0)} / ${summary.hours_window}h</strong>
+    </div>
+  `).join("");
+
+  el.rewardedAdsSummary.innerHTML = `
+    <div class="analytics-kpi-grid">
+      <div class="meta-card">
+        <span>Total successful ads</span>
+        <strong>${formatNumber(summary.total_claims || 0)}</strong>
+      </div>
+      <div class="meta-card">
+        <span>Recent successful ads</span>
+        <strong>${formatNumber(summary.recent_claims || 0)}</strong>
+      </div>
+    </div>
+    <div class="analytics-list">
+      ${actionRows}
+    </div>
+  `;
+}
+
+function renderStarsSalesSummary(summary) {
+  const topSkins = (summary.by_skin || []).slice(0, 8).map((item) => `
+    <div class="analytics-row">
+      <span>${item.skin_id}</span>
+      <strong>${formatNumber(item.purchases)} sales - ${formatNumber(item.stars_amount)} Stars</strong>
+    </div>
+  `).join("");
+
+  const recent = (summary.recent || []).slice(0, 8).map((item) => `
+    <div class="analytics-row analytics-row-stack">
+      <span>${item.username || `User ${item.user_id}`}</span>
+      <strong>${item.skin_id} - ${formatNumber(item.stars_amount)} Stars</strong>
+    </div>
+  `).join("");
+
+  el.starsSalesSummary.innerHTML = `
+    <div class="analytics-kpi-grid">
+      <div class="meta-card">
+        <span>Total Stars skin sales</span>
+        <strong>${formatNumber(summary.total_purchases || 0)}</strong>
+      </div>
+      <div class="meta-card">
+        <span>Total Stars earned</span>
+        <strong>${formatNumber(summary.total_stars || 0)}</strong>
+      </div>
+    </div>
+    <div class="analytics-split">
+      <div class="analytics-box">
+        <h3>Top skins</h3>
+        <div class="analytics-list">
+          ${topSkins || '<div class="empty-state">No Stars skin purchases yet.</div>'}
+        </div>
+      </div>
+      <div class="analytics-box">
+        <h3>Recent purchases</h3>
+        <div class="analytics-list">
+          ${recent || '<div class="empty-state">No recent purchases yet.</div>'}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+async function updateFraudStatus(userId, status, disqualifyFromPayout) {
+  const reason = window.prompt(
+    status === "fraud"
+      ? "Reason for fraud flag / disqualify:"
+      : "Reason for allow payout / clear fraud flag:",
+    ""
+  );
+  if (reason === null) return;
+
+  await apiFetch(`/api/admin/fraud/user/${encodeURIComponent(userId)}`, {
+    method: "POST",
+    body: JSON.stringify({
+      status,
+      reason,
+      disqualify_from_payout: disqualifyFromPayout,
+      season_key: state.selectedSeason || null,
+    }),
+  });
+
+  await loadFraudOverview();
+  await loadSeasonDetail();
+}
+
+function renderFraudOverview(payload) {
+  const players = payload.players || [];
+  if (!players.length) {
+    el.fraudOverview.innerHTML = '<div class="empty-state">No suspicious players for this season right now.</div>';
+    return;
+  }
+
+  el.fraudOverview.innerHTML = "";
+  players.forEach((player) => {
+    const card = document.createElement("article");
+    card.className = "fraud-card";
+    const reasons = (player.reasons || []).map((reason) => `<li>${reason}</li>`).join("");
+
+    card.innerHTML = `
+      <div class="fraud-card-head">
+        <div>
+          <span class="fraud-status ${player.fraud_flag ? "fraud" : "ok"}">${player.fraud_flag ? "Fraud" : "OK"}</span>
+          <h3>${player.username || `User ${player.user_id}`}</h3>
+          <p class="panel-sub">User ${player.user_id} - ${player.league} - Level ${formatNumber(player.display_level)}</p>
+        </div>
+        <div class="fraud-score">
+          <span>Weekly score</span>
+          <strong>${formatNumber(player.score)}</strong>
+        </div>
+      </div>
+      <div class="fraud-metrics">
+        <div class="fraud-metric"><span>Account age</span><strong>${player.account_age_hours}h</strong></div>
+        <div class="fraud-metric"><span>Rewarded ads 1h</span><strong>${formatNumber(player.rewarded_ads_1h)}</strong></div>
+        <div class="fraud-metric"><span>Rewarded ads 24h</span><strong>${formatNumber(player.rewarded_ads_24h)}</strong></div>
+        <div class="fraud-metric"><span>Payout</span><strong>${player.eligible_for_payout ? "Allowed" : "Blocked"}</strong></div>
+      </div>
+      <ul class="fraud-reasons">
+        ${reasons || "<li>No reasons listed.</li>"}
+      </ul>
+      <div class="fraud-actions">
+        <button class="btn btn-danger fraud-disqualify-btn">Disqualify from payout</button>
+        <button class="btn btn-secondary fraud-allow-btn">Allow payout</button>
+      </div>
+    `;
+
+    card.querySelector(".fraud-disqualify-btn").addEventListener("click", () => {
+      updateFraudStatus(player.user_id, "fraud", true).catch((error) => {
+        setStatus("error", error.message || "Fraud update failed");
+      });
+    });
+
+    card.querySelector(".fraud-allow-btn").addEventListener("click", () => {
+      updateFraudStatus(player.user_id, "ok", false).catch((error) => {
+        setStatus("error", error.message || "Fraud update failed");
+      });
+    });
+
+    el.fraudOverview.appendChild(card);
+  });
+}
+
 function buildLeagueTable(title, leagueData) {
   const block = document.createElement("section");
   block.className = "season-league-block";
@@ -227,7 +385,7 @@ function buildLeagueTable(title, leagueData) {
     <div class="season-league-head">
       <div>
         <h3>${title}</h3>
-        <p class="panel-sub">${range} • Fund split ${Math.round((leagueData.fund_split || 0) * 100)}%</p>
+        <p class="panel-sub">${range} - Fund split ${Math.round((leagueData.fund_split || 0) * 100)}%</p>
       </div>
       <strong>${formatNumber(top50.length)} / 50</strong>
     </div>
@@ -251,6 +409,7 @@ function buildLeagueTable(title, leagueData) {
       </table>
     </div>
   `;
+
   return block;
 }
 
@@ -306,6 +465,25 @@ async function loadSeasons() {
   renderSeasonHistory(state.seasons);
 }
 
+async function loadRewardedAdsSummary() {
+  const summary = await apiFetch("/api/admin/rewarded-ads/summary?hours=24");
+  renderRewardedAdsSummary(summary);
+}
+
+async function loadStarsSalesSummary() {
+  const summary = await apiFetch("/api/admin/stars-skins/summary?limit=12");
+  renderStarsSalesSummary(summary);
+}
+
+async function loadFraudOverview() {
+  const effectiveSeason = state.selectedSeason || "";
+  const path = effectiveSeason
+    ? `/api/admin/fraud/overview?season_key=${encodeURIComponent(effectiveSeason)}`
+    : "/api/admin/fraud/overview";
+  const payload = await apiFetch(path);
+  renderFraudOverview(payload);
+}
+
 async function loadSeasonDetail() {
   if (!state.selectedSeason) {
     el.seasonMeta.innerHTML = '<div class="empty-state">No season selected.</div>';
@@ -322,7 +500,10 @@ async function refreshAll() {
     setStatus("idle", "Loading");
     await loadOverview();
     await loadSeasons();
+    await loadRewardedAdsSummary();
+    await loadStarsSalesSummary();
     await loadSeasonDetail();
+    await loadFraudOverview();
     setStatus("ok", "Connected");
   } catch (error) {
     console.error(error);
@@ -374,7 +555,9 @@ function bindEvents() {
     state.selectedSeason = el.seasonSelect.value;
     localStorage.setItem(STORAGE_KEYS.selectedSeason, state.selectedSeason);
     renderSeasonHistory(state.seasons);
-    loadSeasonDetail().catch((error) => setStatus("error", error.message || "Load failed"));
+    Promise.all([loadSeasonDetail(), loadFraudOverview()]).catch((error) => {
+      setStatus("error", error.message || "Load failed");
+    });
   });
   el.fundForm.addEventListener("submit", saveFund);
 }
