@@ -71,13 +71,19 @@ function formatDuration(seconds) {
   const days = Math.floor(total / 86400);
   const hours = Math.floor((total % 86400) / 3600);
   const minutes = Math.floor((total % 3600) / 60);
-  if (days > 0) return `${days}d ${hours}h`;
-  if (hours > 0) return `${hours}h ${minutes}m`;
+  if (days > 0) {
+    return `${days}d ${hours}h`;
+  }
+  if (hours > 0) {
+    return `${hours}h ${minutes}m`;
+  }
   return `${minutes}m`;
 }
 
 async function apiFetch(path, options = {}) {
-  if (!state.apiBase) throw new Error("API base URL is empty");
+  if (!state.apiBase) {
+    throw new Error("API base URL is empty");
+  }
 
   const response = await fetch(`${state.apiBase}${path}`, {
     ...options,
@@ -201,43 +207,19 @@ function buildLeagueTable(title, leagueData) {
   const top50 = leagueData.top50 || [];
   const winners = new Map((leagueData.winners || []).map((winner) => [winner.rank, winner]));
 
-  const cards = top50.map((player) => {
+  const rows = top50.map((player) => {
     const winner = winners.get(player.rank);
     return `
-      <article class="season-player-card">
-        <div class="season-player-top">
-          <div class="season-player-identity">
-            <span class="season-player-rank">#${player.rank}</span>
-            <h4 class="season-player-name">${player.username || `User ${player.user_id}`}</h4>
-          </div>
-          <div class="season-player-score">
-            <span>Weekly Click Score</span>
-            <strong>${formatNumber(player.score)}</strong>
-          </div>
-        </div>
-        <div class="season-player-meta">
-          <div class="season-player-meta-item">
-            <span>Level</span>
-            <strong>${formatNumber(player.display_level)}</strong>
-          </div>
-          <div class="season-player-meta-item">
-            <span>Payout</span>
-            <strong>${winner ? formatCurrencyCents(winner.payout_cents) : "-"}</strong>
-          </div>
-          <div class="season-player-meta-item">
-            <span>Stars</span>
-            <strong>${winner ? formatNumber(winner.stars_reward) : "-"}</strong>
-          </div>
-          <div class="season-player-meta-item">
-            <span>Eligible</span>
-            <strong>${player.eligible_for_payout ? "Yes" : "No"}</strong>
-          </div>
-          <div class="season-player-meta-item">
-            <span>Fraud</span>
-            <strong>${player.fraud_flag ? "Flagged" : "OK"}</strong>
-          </div>
-        </div>
-      </article>
+      <tr>
+        <td data-label="Rank">#${player.rank}</td>
+        <td data-label="Player">${player.username || `User ${player.user_id}`}</td>
+        <td data-label="Level">${formatNumber(player.display_level)}</td>
+        <td data-label="Weekly Click Score">${formatNumber(player.score)}</td>
+        <td data-label="Payout">${winner ? formatCurrencyCents(winner.payout_cents) : "-"}</td>
+        <td data-label="Stars">${winner ? formatNumber(winner.stars_reward) : "-"}</td>
+        <td data-label="Eligible">${player.eligible_for_payout ? "Yes" : "No"}</td>
+        <td data-label="Fraud">${player.fraud_flag ? "Flagged" : "OK"}</td>
+      </tr>
     `;
   }).join("");
 
@@ -249,8 +231,24 @@ function buildLeagueTable(title, leagueData) {
       </div>
       <strong>${formatNumber(top50.length)} / 50</strong>
     </div>
-    <div class="season-player-grid">
-      ${cards || '<div class="empty-state">No players in this league.</div>'}
+    <div class="season-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Player</th>
+            <th>Level</th>
+            <th>Weekly Click Score</th>
+            <th>Payout</th>
+            <th>Stars</th>
+            <th>Eligible</th>
+            <th>Fraud</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows || '<tr><td colspan="8">No players in this league.</td></tr>'}
+        </tbody>
+      </table>
     </div>
   `;
   return block;

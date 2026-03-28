@@ -404,87 +404,37 @@ select:focus {
     flex-wrap: wrap;
 }
 
-.season-player-grid {
-    display: grid;
-    gap: 12px;
-}
-
-.season-player-card {
-    background: rgba(255, 255, 255, 0.03);
+.season-table-wrap {
+    overflow: auto;
+    border-radius: 16px;
     border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 18px;
-    padding: 14px 16px;
+    -webkit-overflow-scrolling: touch;
 }
 
-.season-player-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 14px;
-    margin-bottom: 12px;
+table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 720px;
+    table-layout: fixed;
 }
 
-.season-player-identity {
-    min-width: 0;
+th,
+td {
+    padding: 12px 14px;
+    text-align: left;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    font-size: 13px;
 }
 
-.season-player-rank {
-    display: inline-flex;
-    align-items: center;
-    min-height: 26px;
-    padding: 0 10px;
-    border-radius: 999px;
-    background: rgba(94, 234, 212, 0.12);
-    color: var(--accent);
-    font-size: 12px;
-    font-weight: 800;
-    margin-bottom: 10px;
-}
-
-.season-player-name {
-    margin: 0;
-    font-size: 18px;
-    font-weight: 800;
-    word-break: break-word;
-}
-
-.season-player-score {
-    min-width: 170px;
-    text-align: right;
-}
-
-.season-player-score span,
-.season-player-meta-item span {
-    display: block;
+th {
     color: var(--muted);
     font-size: 12px;
-    font-weight: 700;
-    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
 }
 
-.season-player-score strong {
-    font-size: 20px;
-    font-weight: 800;
-}
-
-.season-player-meta {
-    display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 10px;
-}
-
-.season-player-meta-item {
+tbody tr:hover {
     background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 14px;
-    padding: 10px 12px;
-}
-
-.season-player-meta-item strong {
-    display: block;
-    font-size: 15px;
-    font-weight: 800;
-    word-break: break-word;
 }
 
 .empty-state {
@@ -617,17 +567,57 @@ select:focus {
         font-size: 26px;
     }
 
-    .season-player-top {
-        flex-direction: column;
+    .season-table-wrap {
+        overflow: visible;
+        border: 0;
     }
 
-    .season-player-score {
+    table,
+    thead,
+    tbody,
+    tr,
+    th,
+    td {
+        display: block;
+        width: 100%;
         min-width: 0;
-        text-align: left;
     }
 
-    .season-player-meta {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+    thead {
+        display: none;
+    }
+
+    tbody {
+        display: grid;
+        gap: 12px;
+    }
+
+    tbody tr {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 16px;
+        padding: 10px 12px;
+    }
+
+    td {
+        border-bottom: 0;
+        padding: 7px 0;
+        text-align: right;
+        font-size: 13px;
+    }
+
+    td::before {
+        content: attr(data-label);
+        float: left;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+    }
+
+    tbody tr:hover {
+        background: rgba(255, 255, 255, 0.03);
     }
 }
 
@@ -656,13 +646,5 @@ select:focus {
 
     .meta-card strong {
         font-size: 18px;
-    }
-
-    .season-player-name {
-        font-size: 16px;
-    }
-
-    .season-player-meta {
-        grid-template-columns: 1fr;
     }
 }
