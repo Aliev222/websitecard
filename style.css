@@ -86,6 +86,8 @@ h1 {
     border-radius: 24px;
     box-shadow: var(--shadow);
     padding: 20px;
+    position: relative;
+    overflow: hidden;
 }
 
 .settings-panel,
@@ -102,6 +104,7 @@ h1 {
 .split-grid {
     display: grid;
     gap: 16px;
+    align-items: stretch;
 }
 
 .overview-grid {
@@ -110,6 +113,7 @@ h1 {
 
 .dashboard-grid {
     grid-template-columns: minmax(320px, 420px) minmax(0, 1fr);
+    align-items: stretch;
 }
 
 .season-detail-grid {
@@ -140,6 +144,11 @@ h1 {
     padding: 14px 16px;
 }
 
+.overview-grid > .panel,
+.dashboard-grid > .panel {
+    height: 100%;
+}
+
 .panel-title-row,
 .league-card-head,
 .season-item,
@@ -153,6 +162,7 @@ h1 {
 .league-card-head,
 .season-item {
     justify-content: space-between;
+    gap: 12px;
 }
 
 .panel-sub,
@@ -167,6 +177,7 @@ h1 {
 .panel-title-row {
     gap: 16px;
     margin-bottom: 16px;
+    flex-wrap: wrap;
 }
 
 .settings-grid,
@@ -177,11 +188,13 @@ h1 {
 
 .settings-grid {
     grid-template-columns: 1.4fr 1fr auto;
+    align-items: end;
 }
 
 .field {
     display: grid;
     gap: 8px;
+    min-width: 0;
 }
 
 .field span {
@@ -211,6 +224,7 @@ select:focus {
 .inline-actions,
 .topbar-actions {
     gap: 10px;
+    flex-wrap: wrap;
 }
 
 .btn {
@@ -281,6 +295,13 @@ select:focus {
     font-weight: 800;
 }
 
+.stat-panel {
+    min-height: 126px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
 .season-list,
 .season-leagues,
 .mini-top-list {
@@ -293,6 +314,7 @@ select:focus {
     text-align: left;
     padding: 14px 16px;
     cursor: pointer;
+    gap: 14px;
 }
 
 .season-item.is-active {
@@ -317,10 +339,15 @@ select:focus {
 
 .league-card {
     padding: 16px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
 .mini-top-list {
     margin-top: 14px;
+    flex: 1;
+    align-content: start;
 }
 
 .mini-top-line {
@@ -337,6 +364,7 @@ select:focus {
 .season-meta {
     display: grid;
     gap: 12px;
+    align-content: start;
 }
 
 .meta-card {
@@ -370,6 +398,7 @@ select:focus {
     align-items: center;
     gap: 12px;
     margin-bottom: 14px;
+    flex-wrap: wrap;
 }
 
 .season-table-wrap {
@@ -383,6 +412,7 @@ table {
     width: 100%;
     border-collapse: collapse;
     min-width: 720px;
+    table-layout: fixed;
 }
 
 th,
@@ -407,6 +437,36 @@ tbody tr:hover {
 .empty-state {
     color: var(--muted);
     padding: 18px 0;
+}
+
+.split-card {
+    min-height: 96px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.split-card span {
+    display: block;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.split-card strong {
+    display: block;
+    font-size: 30px;
+    line-height: 1;
+}
+
+.season-item,
+.league-card,
+.meta-card,
+.season-league-block,
+.split-card,
+.stat-panel {
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
 
 @media (max-width: 1120px) {
@@ -469,6 +529,10 @@ tbody tr:hover {
         gap: 8px;
     }
 
+    .panel-sub {
+        max-width: 100%;
+    }
+
     .settings-actions,
     .topbar-actions {
         width: 100%;
@@ -490,6 +554,14 @@ tbody tr:hover {
     .league-card,
     .season-league-block {
         padding: 14px;
+    }
+
+    .split-card {
+        min-height: 78px;
+    }
+
+    .split-card strong {
+        font-size: 26px;
     }
 
     .season-table-wrap {
