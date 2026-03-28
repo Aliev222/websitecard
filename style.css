@@ -92,8 +92,11 @@ h1 {
 
 .settings-panel,
 .overview-grid,
-.dashboard-grid,
-.panel + .panel {
+.dashboard-grid {
+    margin-top: 18px;
+}
+
+.app-shell > .panel + .panel {
     margin-top: 18px;
 }
 
