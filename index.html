@@ -1,220 +1,266 @@
-<!DOCTYPE html>
-<html lang="en">
+﻿<!DOCTYPE html>
+<html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#0a1020">
-    <title>Spirit Admin</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0b1220">
+  <title>SPIRIT Админ-панель</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="app-shell">
-        <header class="topbar">
-            <div>
-                <p class="eyebrow">Spirit Clicker</p>
-                <h1>Admin Dashboard</h1>
-            </div>
-            <div class="topbar-actions">
-                <button id="refresh-all-btn" class="btn btn-primary">Refresh</button>
-            </div>
-        </header>
+  <div class="admin-app">
+    <header class="app-header">
+      <div class="brand-block">
+        <p class="eyebrow">Spirit Clicker</p>
+        <h1>Админ-панель</h1>
+      </div>
+      <nav class="top-nav" id="top-nav">
+        <button type="button" class="nav-btn is-active" data-section="section-tournament">Турнир</button>
+        <button type="button" class="nav-btn" data-section="section-settings">Настройки</button>
+        <button type="button" class="nav-btn" data-section="section-players">Игроки</button>
+        <button type="button" class="nav-btn" data-section="section-analytics">Аналитика</button>
+        <button type="button" class="nav-btn" data-section="section-errors">Ошибки сервера</button>
+      </nav>
+      <div class="header-actions">
+        <span id="connection-status" class="status-pill status-idle">Ожидание</span>
+        <button id="refresh-all-btn" class="btn btn-primary">Обновить всё</button>
+      </div>
+    </header>
 
+    <main class="app-main">
+      <section id="section-tournament" class="view-section is-active">
+        <div class="overview-grid">
+          <article class="panel stat-panel">
+            <span class="stat-label">Онлайн сейчас</span>
+            <strong id="online-now" class="stat-value">-</strong>
+          </article>
+          <article class="panel stat-panel">
+            <span class="stat-label">Всего игроков</span>
+            <strong id="total-users" class="stat-value">-</strong>
+          </article>
+          <article class="panel stat-panel">
+            <span class="stat-label">Текущий сезон</span>
+            <strong id="current-season-key" class="stat-value">-</strong>
+          </article>
+          <article class="panel stat-panel">
+            <span class="stat-label">До ресета</span>
+            <strong id="season-time-left" class="stat-value">-</strong>
+          </article>
+        </div>
+
+        <div class="grid-2">
+          <article class="panel">
+            <div class="panel-title-row">
+              <h2>Фонд недели</h2>
+              <span class="panel-sub">Управление призовым фондом</span>
+            </div>
+            <form id="fund-form" class="stack-form">
+              <label class="field">
+                <span>Ключ сезона</span>
+                <input id="fund-season-key" type="text" placeholder="2026-03-23">
+              </label>
+              <label class="field">
+                <span>Валовая выручка от рекламы, центы</span>
+                <input id="gross-revenue-input" type="number" min="0" step="1" placeholder="100000">
+              </label>
+              <label class="field">
+                <span>Призовой фонд, центы</span>
+                <input id="payout-fund-input" type="number" min="0" step="1" placeholder="40000">
+              </label>
+              <button type="submit" class="btn btn-primary">Сохранить фонд</button>
+            </form>
+
+            <form id="ton-send-form" class="stack-form top-gap">
+              <label class="field">
+                <span>TON фонд для ручной отправки</span>
+                <input id="ton-fund-input" type="number" min="0" step="0.000001" placeholder="100">
+              </label>
+              <label class="field">
+                <span>Комментарий (необязательно)</span>
+                <input id="ton-send-note-input" type="text" maxlength="256" placeholder="Выплата за неделю 2026-04-06">
+              </label>
+              <button id="ton-send-btn" type="submit" class="btn btn-secondary">Отправить TON победителям</button>
+            </form>
+            <div id="ton-send-result" class="panel-sub"></div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-title-row">
+              <h2>История сезонов</h2>
+              <span class="panel-sub">Последние недели</span>
+            </div>
+            <div id="season-history" class="season-list"></div>
+          </article>
+        </div>
+
+        <section class="panel">
+          <div class="panel-title-row">
+            <h2>Снимок лиг</h2>
+            <span class="panel-sub">Топ-3 по каждой лиге и количество игроков</span>
+          </div>
+          <div id="league-snapshot" class="league-snapshot-grid"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-title-row">
+            <h2>Антифрод</h2>
+            <span class="panel-sub">Подозрительные игроки и ручная модерация</span>
+          </div>
+          <div id="fraud-overview" class="fraud-list"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-title-row">
+            <h2>Детали сезона</h2>
+            <div class="inline-actions">
+              <select id="season-select"></select>
+              <button id="load-season-btn" class="btn btn-secondary">Загрузить</button>
+            </div>
+          </div>
+          <div class="season-detail-grid">
+            <div id="season-meta" class="season-meta"></div>
+            <div id="season-leagues" class="season-leagues"></div>
+          </div>
+        </section>
+      </section>
+
+      <section id="section-settings" class="view-section">
         <section class="panel settings-panel">
-            <div class="panel-title-row">
-                <h2>Connection</h2>
-                <span id="connection-status" class="status-pill status-idle">Idle</span>
+          <div class="panel-title-row">
+            <h2>Подключение</h2>
+            <span class="panel-sub">Настройки API и токена</span>
+          </div>
+          <div class="settings-grid">
+            <label class="field">
+              <span>Базовый URL API</span>
+              <input id="api-base-input" type="url" placeholder="https://ryoho.onrender.com">
+            </label>
+            <label class="field">
+              <span>Токен администратора</span>
+              <input id="admin-token-input" type="password" placeholder="X-Admin-Token">
+            </label>
+            <div class="settings-actions">
+              <button id="save-settings-btn" class="btn btn-secondary">Сохранить</button>
+              <button id="test-connection-btn" class="btn btn-ghost">Проверить</button>
             </div>
-            <div class="settings-grid">
+          </div>
+        </section>
+      </section>
+
+      <section id="section-players" class="view-section">
+        <section class="panel">
+          <div class="panel-title-row">
+            <h2>Инструменты игрока</h2>
+            <span class="panel-sub">Поиск, выдача коинов и скинов</span>
+          </div>
+          <div class="player-tools-grid">
+            <form id="player-search-form" class="stack-form">
+              <label class="field">
+                <span>Поиск по никнейму или user_id</span>
+                <input id="player-search-input" type="text" placeholder="@miata44 или 1507124181">
+              </label>
+              <button type="submit" class="btn btn-secondary">Найти</button>
+              <div id="player-search-results" class="player-search-results"></div>
+            </form>
+
+            <div class="stack-form">
+              <div id="player-selected-summary" class="meta-card">
+                <span>Выбранный игрок</span>
+                <strong>Игрок не выбран</strong>
+              </div>
+
+              <form id="grant-coins-form" class="stack-form">
                 <label class="field">
-                    <span>API Base URL</span>
-                    <input id="api-base-input" type="url" placeholder="https://ryoho.onrender.com">
+                  <span>Сумма коинов для выдачи</span>
+                  <input id="grant-coins-amount" type="number" min="1" step="1" placeholder="1000000">
                 </label>
                 <label class="field">
-                    <span>Admin Token</span>
-                    <input id="admin-token-input" type="password" placeholder="X-Admin-Token">
+                  <span>Причина (необязательно)</span>
+                  <input id="grant-coins-reason" type="text" maxlength="256" placeholder="Тест прокачки/перерождения">
                 </label>
-                <div class="settings-actions">
-                    <button id="save-settings-btn" class="btn btn-secondary">Save Settings</button>
-                    <button id="test-connection-btn" class="btn btn-ghost">Test</button>
-                </div>
+                <button type="submit" class="btn btn-primary">Выдать коины</button>
+              </form>
+
+              <form id="grant-skin-form" class="stack-form">
+                <label class="field">
+                  <span>Скин для выдачи</span>
+                  <select id="grant-skin-id"></select>
+                </label>
+                <label class="field">
+                  <span>Причина (необязательно)</span>
+                  <input id="grant-skin-reason" type="text" maxlength="256" placeholder="Ручная выдача">
+                </label>
+                <label class="field-checkbox">
+                  <input id="grant-skin-select-now" type="checkbox">
+                  <span>Сделать этот скин активным сразу</span>
+                </label>
+                <button type="submit" class="btn btn-secondary">Выдать скин</button>
+              </form>
+
+              <div id="player-action-result" class="panel-sub"></div>
             </div>
+          </div>
         </section>
+      </section>
 
-        <section class="overview-grid">
-            <article class="panel stat-panel">
-                <span class="stat-label">Online Now</span>
-                <strong id="online-now" class="stat-value">-</strong>
-            </article>
-            <article class="panel stat-panel">
-                <span class="stat-label">Total Players</span>
-                <strong id="total-users" class="stat-value">-</strong>
-            </article>
-            <article class="panel stat-panel">
-                <span class="stat-label">Current Season</span>
-                <strong id="current-season-key" class="stat-value">-</strong>
-            </article>
-            <article class="panel stat-panel">
-                <span class="stat-label">Reset In</span>
-                <strong id="season-time-left" class="stat-value">-</strong>
-            </article>
-        </section>
-
-        <section class="dashboard-grid">
-            <article class="panel">
-                <div class="panel-title-row">
-                    <h2>Weekly Fund</h2>
-                    <span class="panel-sub">Current season payout setup</span>
-                </div>
-                <form id="fund-form" class="stack-form">
-                    <label class="field">
-                        <span>Season Key</span>
-                        <input id="fund-season-key" type="text" placeholder="2026-03-23">
-                    </label>
-                    <label class="field">
-                        <span>Gross Ad Revenue, cents</span>
-                        <input id="gross-revenue-input" type="number" min="0" step="1" placeholder="100000">
-                    </label>
-                    <label class="field">
-                        <span>Payout Fund, cents</span>
-                        <input id="payout-fund-input" type="number" min="0" step="1" placeholder="40000">
-                    </label>
-                    <button type="submit" class="btn btn-primary">Save Fund</button>
-                </form>
-                <form id="ton-send-form" class="stack-form">
-                    <label class="field">
-                        <span>Total TON Fund (manual send)</span>
-                        <input id="ton-fund-input" type="number" min="0" step="0.000001" placeholder="100">
-                    </label>
-                    <label class="field">
-                        <span>Optional note</span>
-                        <input id="ton-send-note-input" type="text" maxlength="256" placeholder="Week 2026-04-06 payouts">
-                    </label>
-                    <button id="ton-send-btn" type="submit" class="btn btn-secondary">Send TON To Winners</button>
-                </form>
-                <div id="ton-send-result" class="panel-sub"></div>
-                <div class="split-grid">
-                    <div class="split-card">
-                        <span>Diamond</span>
-                        <strong>50%</strong>
-                    </div>
-                    <div class="split-card">
-                        <span>Gold</span>
-                        <strong>30%</strong>
-                    </div>
-                    <div class="split-card">
-                        <span>Silver</span>
-                        <strong>15%</strong>
-                    </div>
-                    <div class="split-card">
-                        <span>Bronze</span>
-                        <strong>5%</strong>
-                    </div>
-                </div>
-                <div class="split-grid payout-grid">
-                    <div class="split-card">
-                        <span>Top 1</span>
-                        <strong>30%</strong>
-                    </div>
-                    <div class="split-card">
-                        <span>Top 2</span>
-                        <strong>20%</strong>
-                    </div>
-                    <div class="split-card">
-                        <span>Top 3</span>
-                        <strong>15%</strong>
-                    </div>
-                    <div class="split-card">
-                        <span>Ranks 4-50</span>
-                        <strong>35%</strong>
-                    </div>
-                </div>
-            </article>
-
-            <article class="panel">
-                <div class="panel-title-row">
-                    <h2>Season History</h2>
-                    <span class="panel-sub">Latest weeks</span>
-                </div>
-                <div id="season-history" class="season-list"></div>
-            </article>
-        </section>
-
-        <section class="panel">
+      <section id="section-analytics" class="view-section">
+        <div class="analytics-grid">
+          <article class="panel">
             <div class="panel-title-row">
-                <h2>League Snapshot</h2>
-                <span class="panel-sub">Current week top 3 and player counts</span>
+              <h2>Реклама (Rewarded Ads)</h2>
+              <span class="panel-sub">Успешные выдачи и действия</span>
             </div>
-            <div id="league-snapshot" class="league-snapshot-grid"></div>
-        </section>
+            <div id="rewarded-ads-summary" class="analytics-stack"></div>
+          </article>
 
-        <section class="analytics-grid">
-            <article class="panel">
-                <div class="panel-title-row">
-                    <h2>Rewarded Ads</h2>
-                    <span class="panel-sub">Successful reward claims and action split</span>
-                </div>
-                <div id="rewarded-ads-summary" class="analytics-stack"></div>
-            </article>
-
-            <article class="panel">
-                <div class="panel-title-row">
-                    <h2>TON Skin Purchases</h2>
-                    <span class="panel-sub">Paid skins bought for TON</span>
-                </div>
-                <div id="ton-skins-summary" class="analytics-stack"></div>
-            </article>
-
-        </section>
-
-        <section class="panel">
+          <article class="panel">
             <div class="panel-title-row">
-                <h2>Anti-Fraud</h2>
-                <span class="panel-sub">Suspicious players, manual fraud status and payout control</span>
+              <h2>Покупки скинов за TON</h2>
+              <span class="panel-sub">Продажи и последние покупки</span>
             </div>
-            <div id="fraud-overview" class="fraud-list"></div>
-        </section>
+            <div id="ton-skins-summary" class="analytics-stack"></div>
+          </article>
+        </div>
+      </section>
 
+      <section id="section-errors" class="view-section">
         <section class="panel">
-            <div class="panel-title-row">
-                <h2>Season Detail</h2>
-                <div class="inline-actions">
-                    <select id="season-select"></select>
-                    <button id="load-season-btn" class="btn btn-secondary">Load</button>
-                </div>
-            </div>
-            <div class="season-detail-grid">
-                <div id="season-meta" class="season-meta"></div>
-                <div id="season-leagues" class="season-leagues"></div>
-            </div>
+          <div class="panel-title-row">
+            <h2>Диагностика API</h2>
+            <span class="panel-sub">Ошибки эндпоинтов и проблемные маршруты</span>
+          </div>
+          <div id="diagnostics-list" class="analytics-stack"></div>
         </section>
-    </div>
+      </section>
+    </main>
+  </div>
 
-    <template id="league-card-template">
-        <article class="league-card">
-            <div class="league-card-head">
-                <div>
-                    <p class="league-name"></p>
-                    <span class="league-range"></span>
-                </div>
-                <span class="league-count"></span>
-            </div>
-            <div class="mini-top-list"></div>
-        </article>
-    </template>
+  <template id="league-card-template">
+    <article class="league-card">
+      <div class="league-card-head">
+        <div>
+          <p class="league-name"></p>
+          <span class="league-range"></span>
+        </div>
+        <span class="league-count"></span>
+      </div>
+      <div class="mini-top-list"></div>
+    </article>
+  </template>
 
-    <template id="season-item-template">
-        <button class="season-item" type="button">
-            <div>
-                <strong class="season-item-key"></strong>
-                <span class="season-item-status"></span>
-            </div>
-            <span class="season-item-fund"></span>
-        </button>
-    </template>
+  <template id="season-item-template">
+    <button class="season-item" type="button">
+      <div>
+        <strong class="season-item-key"></strong>
+        <span class="season-item-status"></span>
+      </div>
+      <span class="season-item-fund"></span>
+    </button>
+  </template>
 
-    <script src="app.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
