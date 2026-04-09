@@ -3,6 +3,9 @@ const STORAGE_KEYS = {
   adminToken: "spirit_admin_token",
   selectedSeason: "spirit_admin_selected_season",
 };
+const SESSION_KEYS = {
+  adminToken: "spirit_admin_token_session",
+};
 
 const state = {
   apiBase: "",
@@ -25,7 +28,7 @@ const el = {
   seasonHistory: document.getElementById("season-history"),
   leagueSnapshot: document.getElementById("league-snapshot"),
   rewardedAdsSummary: document.getElementById("rewarded-ads-summary"),
-  starsSalesSummary: document.getElementById("stars-sales-summary"),
+  tonSkinsSummary: document.getElementById("ton-skins-summary"),
   fraudOverview: document.getElementById("fraud-overview"),
   seasonSelect: document.getElementById("season-select"),
   loadSeasonBtn: document.getElementById("load-season-btn"),
@@ -35,11 +38,23 @@ const el = {
   fundSeasonKey: document.getElementById("fund-season-key"),
   grossRevenueInput: document.getElementById("gross-revenue-input"),
   payoutFundInput: document.getElementById("payout-fund-input"),
+  tonSendForm: document.getElementById("ton-send-form"),
+  tonFundInput: document.getElementById("ton-fund-input"),
+  tonSendNoteInput: document.getElementById("ton-send-note-input"),
+  tonSendBtn: document.getElementById("ton-send-btn"),
+  tonSendResult: document.getElementById("ton-send-result"),
 };
 
 function loadSettings() {
   state.apiBase = localStorage.getItem(STORAGE_KEYS.apiBase) || "https://ryoho.onrender.com";
-  state.adminToken = localStorage.getItem(STORAGE_KEYS.adminToken) || "";
+  state.adminToken =
+    sessionStorage.getItem(SESSION_KEYS.adminToken) ||
+    localStorage.getItem(STORAGE_KEYS.adminToken) ||
+    "";
+  if (state.adminToken) {
+    sessionStorage.setItem(SESSION_KEYS.adminToken, state.adminToken);
+  }
+  localStorage.removeItem(STORAGE_KEYS.adminToken);
   state.selectedSeason = localStorage.getItem(STORAGE_KEYS.selectedSeason) || "";
   el.apiBaseInput.value = state.apiBase;
   el.adminTokenInput.value = state.adminToken;
@@ -49,7 +64,8 @@ function saveSettings() {
   state.apiBase = (el.apiBaseInput.value || "").trim().replace(/\/+$/, "");
   state.adminToken = (el.adminTokenInput.value || "").trim();
   localStorage.setItem(STORAGE_KEYS.apiBase, state.apiBase);
-  localStorage.setItem(STORAGE_KEYS.adminToken, state.adminToken);
+  sessionStorage.setItem(SESSION_KEYS.adminToken, state.adminToken);
+  localStorage.removeItem(STORAGE_KEYS.adminToken);
 }
 
 function setStatus(type, text) {
@@ -69,6 +85,13 @@ function formatNumber(value) {
   return new Intl.NumberFormat("en-US").format(Number(value) || 0);
 }
 
+function formatTon(value) {
+  return `${new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 4,
+  }).format(Number(value) || 0)} TON`;
+}
+
 function formatDuration(seconds) {
   const total = Math.max(0, Number(seconds) || 0);
   const days = Math.floor(total / 86400);
@@ -77,6 +100,20 @@ function formatDuration(seconds) {
   if (days > 0) return `${days}d ${hours}h`;
   if (hours > 0) return `${hours}h ${minutes}m`;
   return `${minutes}m`;
+}
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function getFiniteNumber(value, fallback = 0) {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : fallback;
 }
 
 async function apiFetch(path, options = {}) {
@@ -93,11 +130,14 @@ async function apiFetch(path, options = {}) {
     },
   });
 
+  const rawBody = await response.text().catch(() => "");
   let payload = null;
-  try {
-    payload = await response.json();
-  } catch (error) {
-    payload = null;
+  if (rawBody) {
+    try {
+      payload = JSON.parse(rawBody);
+    } catch (error) {
+      payload = { detail: rawBody };
+    }
   }
 
   if (!response.ok) {
@@ -161,8 +201,8 @@ function renderLeagueSnapshot(overview) {
         const line = document.createElement("div");
         line.className = "mini-top-line";
         line.innerHTML = `
-          <span>#${player.rank} ${player.username || `User ${player.user_id}`}</span>
-          <strong>${formatNumber(player.score)}</strong>
+          <span>#${formatNumber(player.rank)} ${escapeHtml(player.username || `User ${player.user_id}`)}</span>
+          <strong>${formatNumber(getFiniteNumber(player.score))}</strong>
         `;
         list.appendChild(line);
       });
@@ -177,11 +217,11 @@ function renderSeasonMeta(detail) {
   el.seasonMeta.innerHTML = `
     <div class="meta-card">
       <span>Season</span>
-      <strong>${detail.season_key}</strong>
+      <strong>${escapeHtml(detail.season_key)}</strong>
     </div>
     <div class="meta-card">
       <span>Status</span>
-      <strong>${season.status || "active"}</strong>
+      <strong>${escapeHtml(season.status || "active")}</strong>
     </div>
     <div class="meta-card">
       <span>Gross Revenue</span>
@@ -211,8 +251,8 @@ function renderRewardedAdsSummary(summary) {
 
   const actionRows = Object.entries(labels).map(([key, label]) => `
     <div class="analytics-row">
-      <span>${label}</span>
-      <strong>${formatNumber(actions[key]?.total || 0)} total - ${formatNumber(actions[key]?.recent || 0)} / ${summary.hours_window}h</strong>
+      <span>${escapeHtml(label)}</span>
+      <strong>${formatNumber(actions[key]?.total || 0)} total - ${formatNumber(actions[key]?.recent || 0)} / ${formatNumber(summary.hours_window)}h</strong>
     </div>
   `).join("");
 
@@ -233,37 +273,39 @@ function renderRewardedAdsSummary(summary) {
   `;
 }
 
-function renderStarsSalesSummary(summary) {
+function renderTonSkinSummary(summary) {
+  if (!el.tonSkinsSummary) return;
+  const totalTon = Number(summary.total_ton || 0);
   const topSkins = (summary.by_skin || []).slice(0, 8).map((item) => `
     <div class="analytics-row">
-      <span>${item.skin_id}</span>
-      <strong>${formatNumber(item.purchases)} sales - ${formatNumber(item.stars_amount)} Stars</strong>
+      <span>${escapeHtml(item.skin_id)}</span>
+      <strong>${formatNumber(item.purchases)} sales - ${formatTon(item.amount_ton)}</strong>
     </div>
   `).join("");
 
   const recent = (summary.recent || []).slice(0, 8).map((item) => `
     <div class="analytics-row analytics-row-stack">
-      <span>${item.username || `User ${item.user_id}`}</span>
-      <strong>${item.skin_id} - ${formatNumber(item.stars_amount)} Stars</strong>
+      <span>${escapeHtml(item.username || `User ${item.user_id}`)}</span>
+      <strong>${escapeHtml(item.skin_id)} - ${formatTon(item.amount_ton)}</strong>
     </div>
   `).join("");
 
-  el.starsSalesSummary.innerHTML = `
+  el.tonSkinsSummary.innerHTML = `
     <div class="analytics-kpi-grid">
       <div class="meta-card">
-        <span>Total Stars skin sales</span>
+        <span>Total TON skin sales</span>
         <strong>${formatNumber(summary.total_purchases || 0)}</strong>
       </div>
       <div class="meta-card">
-        <span>Total Stars earned</span>
-        <strong>${formatNumber(summary.total_stars || 0)}</strong>
+        <span>Total TON volume</span>
+        <strong>${formatTon(totalTon)}</strong>
       </div>
     </div>
     <div class="analytics-split">
       <div class="analytics-box">
         <h3>Top skins</h3>
         <div class="analytics-list">
-          ${topSkins || '<div class="empty-state">No Stars skin purchases yet.</div>'}
+          ${topSkins || '<div class="empty-state">No TON skin purchases yet.</div>'}
         </div>
       </div>
       <div class="analytics-box">
@@ -277,6 +319,10 @@ function renderStarsSalesSummary(summary) {
 }
 
 async function updateFraudStatus(userId, status, disqualifyFromPayout) {
+  const normalizedUserId = Number(userId);
+  if (!Number.isFinite(normalizedUserId) || normalizedUserId <= 0) {
+    throw new Error("Invalid user id");
+  }
   const reason = window.prompt(
     status === "fraud"
       ? "Reason for fraud flag / disqualify:"
@@ -285,7 +331,7 @@ async function updateFraudStatus(userId, status, disqualifyFromPayout) {
   );
   if (reason === null) return;
 
-  await apiFetch(`/api/admin/fraud/user/${encodeURIComponent(userId)}`, {
+  await apiFetch(`/api/admin/fraud/user/${encodeURIComponent(String(normalizedUserId))}`, {
     method: "POST",
     body: JSON.stringify({
       status,
@@ -310,14 +356,14 @@ function renderFraudOverview(payload) {
   players.forEach((player) => {
     const card = document.createElement("article");
     card.className = "fraud-card";
-    const reasons = (player.reasons || []).map((reason) => `<li>${reason}</li>`).join("");
+    const reasons = (player.reasons || []).map((reason) => `<li>${escapeHtml(reason)}</li>`).join("");
 
     card.innerHTML = `
       <div class="fraud-card-head">
         <div>
           <span class="fraud-status ${player.fraud_flag ? "fraud" : "ok"}">${player.fraud_flag ? "Fraud" : "OK"}</span>
-          <h3>${player.username || `User ${player.user_id}`}</h3>
-          <p class="panel-sub">User ${player.user_id} - ${player.league} - Level ${formatNumber(player.display_level)}</p>
+          <h3>${escapeHtml(player.username || `User ${player.user_id}`)}</h3>
+          <p class="panel-sub">User ${formatNumber(player.user_id)} - ${escapeHtml(player.league)} - Level ${formatNumber(player.display_level)}</p>
         </div>
         <div class="fraud-score">
           <span>Weekly score</span>
@@ -325,7 +371,7 @@ function renderFraudOverview(payload) {
         </div>
       </div>
       <div class="fraud-metrics">
-        <div class="fraud-metric"><span>Account age</span><strong>${player.account_age_hours}h</strong></div>
+        <div class="fraud-metric"><span>Account age</span><strong>${formatNumber(player.account_age_hours)}h</strong></div>
         <div class="fraud-metric"><span>Rewarded ads 1h</span><strong>${formatNumber(player.rewarded_ads_1h)}</strong></div>
         <div class="fraud-metric"><span>Rewarded ads 24h</span><strong>${formatNumber(player.rewarded_ads_24h)}</strong></div>
         <div class="fraud-metric"><span>Payout</span><strong>${player.eligible_for_payout ? "Allowed" : "Blocked"}</strong></div>
@@ -369,8 +415,8 @@ function buildLeagueTable(title, leagueData) {
     const winner = winners.get(player.rank);
     return `
       <tr>
-        <td data-label="Rank">#${player.rank}</td>
-        <td data-label="Player">${player.username || `User ${player.user_id}`}</td>
+        <td data-label="Rank">#${formatNumber(player.rank)}</td>
+        <td data-label="Player">${escapeHtml(player.username || `User ${player.user_id}`)}</td>
         <td data-label="Level">${formatNumber(player.display_level)}</td>
         <td data-label="Weekly Click Score">${formatNumber(player.score)}</td>
         <td data-label="Payout">${winner ? formatCurrencyCents(winner.payout_cents) : "-"}</td>
@@ -384,8 +430,8 @@ function buildLeagueTable(title, leagueData) {
   block.innerHTML = `
     <div class="season-league-head">
       <div>
-        <h3>${title}</h3>
-        <p class="panel-sub">${range} - Fund split ${Math.round((leagueData.fund_split || 0) * 100)}%</p>
+        <h3>${escapeHtml(title)}</h3>
+        <p class="panel-sub">${escapeHtml(range)} - Fund split ${Math.round((leagueData.fund_split || 0) * 100)}%</p>
       </div>
       <strong>${formatNumber(top50.length)} / 50</strong>
     </div>
@@ -470,9 +516,9 @@ async function loadRewardedAdsSummary() {
   renderRewardedAdsSummary(summary);
 }
 
-async function loadStarsSalesSummary() {
-  const summary = await apiFetch("/api/admin/stars-skins/summary?limit=12");
-  renderStarsSalesSummary(summary);
+async function loadTonSkinSummary() {
+  const summary = await apiFetch("/api/admin/stars-skins/summary?limit=12&currency=TON");
+  renderTonSkinSummary(summary);
 }
 
 async function loadFraudOverview() {
@@ -495,20 +541,34 @@ async function loadSeasonDetail() {
 }
 
 async function refreshAll() {
-  try {
-    saveSettings();
-    setStatus("idle", "Loading");
-    await loadOverview();
-    await loadSeasons();
-    await loadRewardedAdsSummary();
-    await loadStarsSalesSummary();
-    await loadSeasonDetail();
-    await loadFraudOverview();
+  saveSettings();
+  setStatus("idle", "Loading");
+
+  const tasks = [
+    loadOverview(),
+    loadSeasons(),
+    loadRewardedAdsSummary(),
+    loadTonSkinSummary(),
+    loadSeasonDetail(),
+    loadFraudOverview(),
+  ];
+
+  const results = await Promise.allSettled(tasks);
+  const failed = results.filter((result) => result.status === "rejected");
+
+  if (!failed.length) {
     setStatus("ok", "Connected");
-  } catch (error) {
-    console.error(error);
-    setStatus("error", error.message || "Request failed");
+    return;
   }
+
+  if (failed.length < results.length) {
+    setStatus("warning", `Partial: ${failed.length} section(s) failed`);
+    console.warn("Partial refresh errors:", failed.map((item) => item.reason));
+    return;
+  }
+
+  const firstError = failed[0]?.reason;
+  setStatus("error", firstError?.message || "Request failed");
 }
 
 async function testConnection() {
@@ -528,9 +588,20 @@ async function saveFund(event) {
   try {
     saveSettings();
     const seasonKey = (el.fundSeasonKey.value || "").trim();
+    const grossRevenueCents = Number(el.grossRevenueInput.value || 0);
+    const payoutFundCents = Number(el.payoutFundInput.value || 0);
+    if (!seasonKey) {
+      throw new Error("Season key is required");
+    }
+    if (!Number.isFinite(grossRevenueCents) || grossRevenueCents < 0) {
+      throw new Error("Gross revenue must be a non-negative number");
+    }
+    if (!Number.isFinite(payoutFundCents) || payoutFundCents < 0) {
+      throw new Error("Payout fund must be a non-negative number");
+    }
     const payload = {
-      gross_ad_revenue_cents: Number(el.grossRevenueInput.value || 0),
-      payout_fund_cents: Number(el.payoutFundInput.value || 0),
+      gross_ad_revenue_cents: Math.floor(grossRevenueCents),
+      payout_fund_cents: Math.floor(payoutFundCents),
     };
     await apiFetch(`/api/admin/weekly-tournament/season/${encodeURIComponent(seasonKey)}/fund`, {
       method: "POST",
@@ -541,6 +612,49 @@ async function saveFund(event) {
   } catch (error) {
     console.error(error);
     setStatus("error", error.message || "Save failed");
+  }
+}
+
+async function sendTonPayouts(event) {
+  event.preventDefault();
+  try {
+    saveSettings();
+    const seasonKey = (state.selectedSeason || el.fundSeasonKey.value || "").trim();
+    const totalFundTon = Number(el.tonFundInput.value || 0);
+    const note = (el.tonSendNoteInput.value || "").trim();
+    if (!seasonKey) {
+      throw new Error("Select season first");
+    }
+    if (!Number.isFinite(totalFundTon) || totalFundTon <= 0) {
+      throw new Error("Total TON fund must be greater than zero");
+    }
+
+    el.tonSendBtn.disabled = true;
+    el.tonSendResult.textContent = "Sending...";
+    const payload = {
+      total_fund_ton: totalFundTon,
+      note: note || null,
+    };
+    const result = await apiFetch(
+      `/api/admin/weekly-tournament/season/${encodeURIComponent(seasonKey)}/ton-payouts/send`,
+      {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }
+    );
+    const summary = `Queued: ${formatNumber(result.queued)} | Submitted: ${formatNumber(result.submitted)} | Failed: ${formatNumber(result.failed)} | No wallet: ${formatNumber(result.skipped_without_wallet)}`;
+    const senderHint = result.sender_configured
+      ? ""
+      : " (sender not configured on backend, rows are queued only)";
+    el.tonSendResult.textContent = `${summary}${senderHint}`;
+    await refreshAll();
+    setStatus("ok", "TON payout request processed");
+  } catch (error) {
+    console.error(error);
+    el.tonSendResult.textContent = "";
+    setStatus("error", error.message || "TON send failed");
+  } finally {
+    el.tonSendBtn.disabled = false;
   }
 }
 
@@ -560,6 +674,7 @@ function bindEvents() {
     });
   });
   el.fundForm.addEventListener("submit", saveFund);
+  el.tonSendForm.addEventListener("submit", sendTonPayouts);
 }
 
 function init() {

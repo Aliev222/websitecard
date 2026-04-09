@@ -83,6 +83,18 @@
                     </label>
                     <button type="submit" class="btn btn-primary">Save Fund</button>
                 </form>
+                <form id="ton-send-form" class="stack-form">
+                    <label class="field">
+                        <span>Total TON Fund (manual send)</span>
+                        <input id="ton-fund-input" type="number" min="0" step="0.000001" placeholder="100">
+                    </label>
+                    <label class="field">
+                        <span>Optional note</span>
+                        <input id="ton-send-note-input" type="text" maxlength="256" placeholder="Week 2026-04-06 payouts">
+                    </label>
+                    <button id="ton-send-btn" type="submit" class="btn btn-secondary">Send TON To Winners</button>
+                </form>
+                <div id="ton-send-result" class="panel-sub"></div>
                 <div class="split-grid">
                     <div class="split-card">
                         <span>Diamond</span>
@@ -149,11 +161,12 @@
 
             <article class="panel">
                 <div class="panel-title-row">
-                    <h2>Telegram Stars Skins</h2>
-                    <span class="panel-sub">Purchased skins and recent Stars sales</span>
+                    <h2>TON Skin Purchases</h2>
+                    <span class="panel-sub">Paid skins bought for TON</span>
                 </div>
-                <div id="stars-sales-summary" class="analytics-stack"></div>
+                <div id="ton-skins-summary" class="analytics-stack"></div>
             </article>
+
         </section>
 
         <section class="panel">
